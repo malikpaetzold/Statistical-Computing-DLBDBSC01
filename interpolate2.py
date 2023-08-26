@@ -7,15 +7,15 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 # reference: https://stackoverflow.com/questions/63097829/debugging-numpy-visibledeprecationwarning-ndarray-from-ragged-nested-sequences
 
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_absolute_percentage_error
 
-data = pd.read_csv("clean_data/school_enrollment_secondary_gross.csv")
-indicator = "school_enrollment_secondary"
+data = pd.read_csv("clean_data/school_enrollment_tertiary_gross.csv")
+indicator = "school_enrollment_tertiary"
 
 # print(data.head(10))
 
-with open("interpolate_log.txt", "w") as f:
-    f.write("--- interpolation logs ---")
+# with open("interpolate_log.txt", "w") as f:
+#     f.write("--- interpolation logs ---")
 
 def interpolate(country_indx: str, log_transform=False):
     series = data.iloc[country_indx]
@@ -28,6 +28,10 @@ def interpolate(country_indx: str, log_transform=False):
         if log_transform: y.append(np.log(val))
         else: y.append(val)
         X.append(indx)
+    
+    if np.min(y) <= 0:
+        for i in range(len(y)):
+            if y[i] <= 0: y[i] = 0.0001
 
     X = np.array(X).reshape(-1, 1)
     y = np.array(y).reshape(-1, 1)
@@ -39,6 +43,8 @@ def interpolate(country_indx: str, log_transform=False):
     # coefficient of determination
     y_pred = regressor.predict(X)
     r2 = r2_score(y, y_pred)
+    mae = mean_absolute_error(y, y_pred)
+    mape = mean_absolute_percentage_error(y, y_pred)
     
     to_predict = np.arange(0.0, 63.0, 1.0)[:, np.newaxis]
 
@@ -51,20 +57,23 @@ def interpolate(country_indx: str, log_transform=False):
                 prediction[i] = 0.001
         prediction = np.exp(prediction)
     
-    return prediction, r2
+    return prediction, r2, mae, mape
 
 def merge_values(country_indx):
     merged_values = []
     series = data.iloc[country_indx]
     country_name = series.loc["Country Name"]
     values = list(series.drop(["Unnamed: 0", "Country Name", "Country Code", "Unnamed: 67"]))
+    use_log = False
     
-    pred, r2 = interpolate(country_indx)
-    pred_log, r2_log = interpolate(country_indx, True)
+    pred, r2, mae, mape = interpolate(country_indx)
+    pred_log, r2_log, mae_log, mape_log = interpolate(country_indx, True)
     
     # use prediction with better r2 score
     if r2 > r2_log:
         prediction = pred
+        r2, mae, mape = r2_log, mae_log, mape_log
+        use_log = True
     else:
         prediction = pred_log
 
@@ -90,25 +99,29 @@ def merge_values(country_indx):
     plt.legend()
     # if log_transform: plt.text(0.1, 0.9, "using log transform", family="sans-serif", transform=ax.transAxes)
     # plt.title(f"GDP per capita (current US$) of {country_name}")
-    plt.title(f"School Enrollment (secondary) of {country_name}")
-    plt.savefig(f"interpolate_plots2/school_enrollment_secondary/{indicator}_{country_indx}_{country_name}.png", bbox_inches="tight")
+    plt.title(f"School Enrollment (tertiary) of {country_name}") # change
+    plt.savefig(f"interpolate_plots2/{indicator}/{indicator}_{country_indx}_{country_name}.png", bbox_inches="tight")
     plt.close()
     
-    return list(merged_values), str(country_name), max([r2, r2_log])
+    return list(merged_values), str(country_name), r2, mae, mape, use_log
 
 
 full_data = {}
+interpolation_logs = {}
 r2s = []
 
 for indx, row in data.iterrows():
-    country_data, country_name, r2 = merge_values(indx)
+    country_data, country_name, r2, mae, mape, use_log = merge_values(indx)
     full_data[country_name] = country_data
+    interpolation_logs[country_name] = [r2, mae, mape, use_log]
     r2s.append(r2)
 
 out = pd.DataFrame(data=full_data)
+logs_out = pd.DataFrame(data=interpolation_logs)
 
 print(pd.Series(r2s).mean())
 print(pd.Series(r2s).median())
 print(sum(r2s))
 
 out.to_csv(f"interpolated_data/{indicator}.csv")
+logs_out.to_csv(f"interpolated_data/logs-{indicator}.csv")
