@@ -2,9 +2,9 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-DATA_PATH = "download2/API_SP.DYN.TFRT.IN_DS2_EN_csv_v2_5729644.csv"
-METADATA_PATH = "download2/Metadata_Country_API_SP.DYN.TFRT.IN_DS2_EN_csv_v2_5729644.csv"
-OUT_PATH = "clean_data/fertility_rate.csv"
+DATA_PATH = "download2/API_EG.ELC.ACCS.ZS_DS2_en_csv_v2_5729318.csv"
+METADATA_PATH = "download2/Metadata_Country_API_EG.ELC.ACCS.ZS_DS2_en_csv_v2_5729318.csv"
+OUT_PATH = "clean_data/electricity.csv"
 
 data = pd.read_csv(DATA_PATH, skiprows=4)
 
@@ -38,7 +38,6 @@ for elem in to_drop:
     to_drop_indx.append(drop_indx)
 
 clean.drop(index=to_drop_indx, inplace=True)
-
 # get aggregates & other groups
 country_meta = pd.read_csv(METADATA_PATH)
 
@@ -52,8 +51,11 @@ for indx, row in country_meta.iterrows():
 # remove non countris
 to_drop_indx = []
 for elem in non_countries:
-    drop_indx = clean.loc[clean["Country Code"] == elem[0]].index[0]
-    to_drop_indx.append(drop_indx)
+    try:
+        drop_indx = clean.loc[clean["Country Code"] == elem[0]].index[0]
+        to_drop_indx.append(drop_indx)
+    except Exception as e:
+        print(indx, elem, e)
 
 clean.drop(index=to_drop_indx, inplace=True)
 

@@ -9,8 +9,8 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error, mean_absolute_percentage_error
 
-data = pd.read_csv("clean_data/school_enrollment_tertiary_gross.csv")
-indicator = "school_enrollment_tertiary"
+data = pd.read_csv("clean_data/electricity.csv")
+indicator = "electricity"
 
 # print(data.head(10))
 
