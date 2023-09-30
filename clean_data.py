@@ -2,9 +2,9 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-DATA_PATH = "download2/API_SP.DYN.TFRT.IN_DS2_EN_csv_v2_5729644.csv"
-METADATA_PATH = "download2/Metadata_Country_API_SP.DYN.TFRT.IN_DS2_EN_csv_v2_5729644.csv"
-OUT_PATH = "clean_data/fertility_rate.csv"
+DATA_PATH = "download2/API_SL.UEM.TOTL.FE.ZS_DS2_en_csv_v2_5874438.csv"
+METADATA_PATH = "download2/Metadata_Country_API_SL.UEM.TOTL.FE.ZS_DS2_en_csv_v2_5874438.csv"
+OUT_PATH = "clean_data/unemployment_female.csv"
 
 data = pd.read_csv(DATA_PATH, skiprows=4)
 indicator_name = OUT_PATH.split("/")[-1].replace(".csv", "")

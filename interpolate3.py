@@ -9,8 +9,8 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 
-data = pd.read_csv("clean_data/electricity.csv")
-indicator = "electricity"
+data = pd.read_csv("clean_data/gdp.csv")
+indicator = "gdp"
 
 # print(data.head(10))
 
@@ -103,7 +103,7 @@ def merge_values(country_indx):
         
         # optional, dependent in indicator
         if value < 0: value = 0.1
-        if value > 100: value = 100
+        # if value > 100: value = 100
         # if value < 0: continue
         merged_values.append(value)
     if vr2 < -1: vr2 = -1
@@ -157,5 +157,5 @@ print("RMSEs:")
 print(pd.Series(vals[:, 7]).mean(), pd.Series(vals[:, 7]).median())
 print(pd.Series(vals[:, 7]).min(), pd.Series(vals[:, 7]).max())
 
-out.to_csv(f"interpolated_data/{indicator}.csv")
-logs_out.to_csv(f"interpolated_data/logs-{indicator}.csv")
+# out.to_csv(f"interpolated_data/{indicator}.csv")
+# logs_out.to_csv(f"interpolated_data/logs-{indicator}.csv")
